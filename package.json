@@ -1,0 +1,29 @@
+{
+  "name": "cypress-webhookdotsite",
+  "version": "1.0.0",
+  "description": "cypress npm extension to allow for email and webhook testing through webhook.site",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TylorMayfield/cypress-webhookdotsite.git"
+  },
+  "keywords": [
+    "cypress",
+    "npm",
+    "webhook",
+    "email",
+    "testing",
+    "emailtesting",
+    "webhooktesting",
+    "automation"
+  ],
+  "author": "Tylor Mayfield",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TylorMayfield/cypress-webhookdotsite/issues"
+  },
+  "homepage": "https://github.com/TylorMayfield/cypress-webhookdotsite#readme"
+}
