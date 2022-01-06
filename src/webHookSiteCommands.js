@@ -17,7 +17,9 @@ class WebHookSiteCommands {
   }
 
   webHookDotSiteGetToken() {
-    cy.wrap(this.request.post("token"));
+    let tokenBody = this.request.post("token");
+
+    cy.wrap(tokenBody.uuid);
   }
 
   webHookDotSiteEmailAddress(token) {
