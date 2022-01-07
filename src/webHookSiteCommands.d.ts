@@ -1,4 +1,4 @@
-import Request from "./requestBuilder";
+const Request = require("./requestBuilder");
 
 /// <reference types="cypress" />
 
