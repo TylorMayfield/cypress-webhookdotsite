@@ -21,18 +21,18 @@ require("cypress-webhookdotsite");
 ### Example Usage
 
 ```
-      cy.webHookDotSiteGetToken().then((token) => {
+      cy.webhookGenerateToken().then((token) => {
         cy.log(`Token: ${token}`);
-        cy.webHookDotSiteEmailAddress(token).then((emailAddress) => {
+        cy.webhookGetEmailAddress(token).then((emailAddress) => {
           console.log(emailAddress);
           cy.log(`Email Address: ${emailAddress}`);
         });
-        cy.webHookDotSiteWebHookURI(token).then((webHookURI) => {
+        cy.webhookGetURI(token).then((webHookURI) => {
           console.log(webHookURI);
           cy.log(`WebHook URI: ${webHookURI}`);
           cy.request(webHookURI); // hit our hook so there is an entry
         });
-        cy.webHookDotSiteGetResponses(token).then((responses) => {
+        cy.webhookGetAllRequests(token).then((responses) => {
           console.log(responses);
           responses.forEach((response) => {
             cy.log(`Response: ${response.ip}`);

@@ -3,7 +3,7 @@ const Request = require("./requestBuilder");
 const defaultApiKey = Cypress.env("webHookDotSiteApiKey") || null;
 let requester = new Request({ defaultApiKey });
 
-const webHookDotSiteGetToken = () => {
+const webhookGenerateToken = () => {
   requester.post("token").then((tokenRequest) => {
     expect(tokenRequest.uuid).to.be.a("string");
     expect(tokenRequest.uuid).to.have.length(36);
@@ -11,12 +11,12 @@ const webHookDotSiteGetToken = () => {
   });
 };
 
-const webHookDotSiteEmailAddress = (token) => {
+const webhookGetEmailAddress = (token) => {
   expect(token).to.have.length(36);
   cy.wrap(`${token}@email.webhook.site`);
 };
 
-const webHookDotSiteGetResponses = (token) => {
+const webhookGetAllRequests = (token) => {
   expect(token).to.have.length(36);
   requester.get(`token/${token}/requests`).then((requests) => {
     expect(requests.data).to.be.an("array");
@@ -24,12 +24,12 @@ const webHookDotSiteGetResponses = (token) => {
   });
 };
 
-const webHookDotSiteWebHookURI = (token) => {
+const webhookGetURI = (token) => {
   expect(token).to.have.length(36);
   cy.wrap(`https://webhook.site/${token}`);
 };
 
-Cypress.Commands.add("webHookDotSiteGetToken", webHookDotSiteGetToken);
-Cypress.Commands.add("webHookDotSiteEmailAddress", webHookDotSiteEmailAddress);
-Cypress.Commands.add("webHookDotSiteGetResponses", webHookDotSiteGetResponses);
-Cypress.Commands.add("webHookDotSiteWebHookURI", webHookDotSiteWebHookURI);
+Cypress.Commands.add("webhookGenerateToken", webHookDotSiteGetToken);
+Cypress.Commands.add("webhookGetEmailAddress", webHookDotSiteEmailAddress);
+Cypress.Commands.add("webhookGetAllRequests", webHookDotSiteGetResponses);
+Cypress.Commands.add("webhookGetURI", webHookDotSiteWebHookURI);
