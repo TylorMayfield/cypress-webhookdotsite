@@ -30,7 +30,7 @@ require("cypress-webhookdotsite");
         cy.webHookDotSiteWebHookURI(token).then((webHookURI) => {
           console.log(webHookURI);
           cy.log(`WebHook URI: ${webHookURI}`);
-          cy.request(webHookURI);
+          cy.request(webHookURI); // hit our hook so there is an entry
         });
         cy.webHookDotSiteGetResponses(token).then((responses) => {
           console.log(responses);
