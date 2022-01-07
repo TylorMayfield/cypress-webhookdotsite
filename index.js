@@ -29,7 +29,7 @@ const webhookGetURI = (token) => {
   cy.wrap(`https://webhook.site/${token}`);
 };
 
-Cypress.Commands.add("webhookGenerateToken", webHookDotSiteGetToken);
-Cypress.Commands.add("webhookGetEmailAddress", webHookDotSiteEmailAddress);
-Cypress.Commands.add("webhookGetAllRequests", webHookDotSiteGetResponses);
-Cypress.Commands.add("webhookGetURI", webHookDotSiteWebHookURI);
+Cypress.Commands.add("webhookGenerateToken", webhookGenerateToken);
+Cypress.Commands.add("webhookGetEmailAddress", webhookGetEmailAddress);
+Cypress.Commands.add("webhookGetAllRequests", webhookGetAllRequests);
+Cypress.Commands.add("webhookGetURI", webhookGetURI);
