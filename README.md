@@ -40,5 +40,3 @@ require("cypress-webhookdotsite");
         });
       });
 ```
-
-test
