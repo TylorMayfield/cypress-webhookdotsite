@@ -7,6 +7,8 @@ const webhookGenerateToken = () => {
   requester.post("token").then((tokenRequest) => {
     expect(tokenRequest.uuid).to.be.a("string");
     expect(tokenRequest.uuid).to.have.length(36);
+    cy.log("View requests from your browser here:");
+    cy.log(`https://webhook.site/#!/${tokenRequest.uuid}`);
     cy.wrap(tokenRequest.uuid);
   });
 };
