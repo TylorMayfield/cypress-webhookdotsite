@@ -1,3 +1,5 @@
+[![Node.js Package](https://github.com/TylorMayfield/cypress-webhookdotsite/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/TylorMayfield/cypress-webhookdotsite/actions/workflows/npm-publish.yml)
+
 # cypress-webhookdotsite
 
 cypress npm extension to allow for email and webhook testing through webhook.site
