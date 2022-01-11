@@ -1,6 +1,6 @@
 {
   "name": "cypress-webhookdotsite",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "cypress npm extension to allow for email and webhook testing through webhook.site",
   "main": "index.js",
   "repository": {
