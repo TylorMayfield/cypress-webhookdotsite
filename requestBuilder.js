@@ -1,14 +1,10 @@
 class RequestBuilder {
   constructor(options) {
-    this.baseUrl = "https://webhook.site/";
-    this.webHookDotSiteApiKey = options.webHookDotSiteApiKey || null;
+    this.baseUrl = 'https://webhook.site/';
     this.headers = {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
     };
-    if (this.webHookDotSiteApiKey) {
-      this.headers["Api-Key"] = this.webHookDotSiteApiKey;
-    }
   }
 
   buildOptions(method, path) {
@@ -18,26 +14,39 @@ class RequestBuilder {
       headers: this.headers,
     };
   }
-  request(method, path, body) {
+  request(method, path, parameters) {
+    cy.log(parameters);
+    console.log(this.webHookDotSiteApiKey);
+    cy.log(this.webHookDotSiteApiKey);
     const options = this.buildOptions(method, path);
-    options.body = body || undefined;
-    return cy.request(options).its("body");
+    if (parameters.hasOwnProperty('password') && (!parameters.hasOwnProperty('apikey')) {
+      throw new Error('You must provide an apikey if a password is provided');
+    }
+    if (parameters.hasOwnProperty('apikey')) {
+      options.headers['Api-Key'] = parameters.apikey;
+    }
+    if (parameters.hasOwnProperty('password')) {
+      options.url = `${options.url}?password=${parameters.password}`;
+    }
+
+    //options.body = body || undefined;
+    return cy.request(options).its('body');
   }
 
-  get(path) {
-    return this.request("GET", path);
+  get(path, parameters) {
+    return this.request('GET', path, parameters);
   }
 
-  post(path, body) {
-    return this.request("POST", path, body);
+  post(path, parameters) {
+    return this.request('POST', path, parameters);
   }
 
-  put(path, body) {
-    return this.request("PUT", path, body);
+  put(path, parameters) {
+    return this.request('PUT', path, parameters);
   }
 
-  del(path) {
-    return this.request("DELETE", path);
+  del(path, parameters) {
+    return this.request('DELETE', path, parameters);
   }
 }
 

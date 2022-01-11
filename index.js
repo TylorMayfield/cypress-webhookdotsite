@@ -1,37 +1,61 @@
-const Request = require("./requestBuilder");
+const Request = require('./requestBuilder');
 
-const defaultApiKey = Cypress.env("webHookDotSiteApiKey") || null;
-let requester = new Request({ defaultApiKey });
+let requester = new Request();
+// Parameter Options
+// token
+// password
+// apikey
 
-const webhookGenerateToken = () => {
-  requester.post("token").then((tokenRequest) => {
-    expect(tokenRequest.uuid).to.be.a("string");
+const webhookGenerateToken = (parameters) => {
+  requester.post('token', parameters).then((tokenRequest) => {
+    expect(tokenRequest.uuid).to.be.a('string');
     expect(tokenRequest.uuid).to.have.length(36);
-    cy.log("View requests from your browser here:");
+    cy.log('View requests from your browser here:');
     cy.log(`https://webhook.site/#!/${tokenRequest.uuid}`);
+    if (parameters.hasOwnProperty('password')) {
+      requester.put(`token/${tokenRequest.uuid}/password`, parameters);
+    }
     cy.wrap(tokenRequest.uuid);
   });
 };
 
-const webhookGetEmailAddress = (token) => {
-  expect(token).to.have.length(36);
-  cy.wrap(`${token}@email.webhook.site`);
+const webhookGetEmailAddress = (parameters) => {
+  if (!parameters.hasOwnProperty('token')) {
+    throw new Error('You must provide a token');
+  }
+  expect(parameters.token).to.have.length(36);
+  cy.wrap(`${parameters.token}@email.webhook.site`);
 };
 
-const webhookGetAllRequests = (token) => {
-  expect(token).to.have.length(36);
-  requester.get(`token/${token}/requests`).then((requests) => {
-    expect(requests.data).to.be.an("array");
+const webhookGetAllRequests = (parameters) => {
+  if (!parameters.hasOwnProperty('token')) {
+    throw new Error('You must provide a token');
+  }
+  expect(parameters.token).to.have.length(36);
+  requester.get(`token/${parameters.token}/requests`, parameters).then((requests) => {
+    expect(requests.data).to.be.an('array');
     cy.wrap(requests.data);
   });
 };
 
-const webhookGetURI = (token) => {
-  expect(token).to.have.length(36);
-  cy.wrap(`https://webhook.site/${token}`);
+const webhookGetURI = (parameters) => {
+  if (!parameters.hasOwnProperty('token')) {
+    throw new Error('You must provide a token');
+  }
+  expect(parameters.token).to.have.length(36);
+  cy.wrap(`https://webhook.site/${parameters.token}`);
 };
 
-Cypress.Commands.add("webhookGenerateToken", webhookGenerateToken);
-Cypress.Commands.add("webhookGetEmailAddress", webhookGetEmailAddress);
-Cypress.Commands.add("webhookGetAllRequests", webhookGetAllRequests);
-Cypress.Commands.add("webhookGetURI", webhookGetURI);
+const webhookDeleteSession = (parameters) => {
+  if (!parameters.hasOwnProperty('token')) {
+    throw new Error('You must provide a token');
+  }
+  expect(parameters.token).to.have.length(36);
+  requester.del(`token/${parameters.token}`);
+};
+
+Cypress.Commands.add('webhookGenerateToken', webhookGenerateToken);
+Cypress.Commands.add('webhookGetEmailAddress', webhookGetEmailAddress);
+Cypress.Commands.add('webhookGetAllRequests', webhookGetAllRequests);
+Cypress.Commands.add('webhookGetURI', webhookGetURI);
+Cypress.Commands.add('webhookDeleteSession', webhookDeleteSession);

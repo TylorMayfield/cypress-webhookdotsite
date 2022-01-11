@@ -17,28 +17,43 @@ npm install cypress-webhookdotsite --save-dev
 Once downloaded, add the following line to `cypress/support/index.js` to import the commands into your Cypress project:
 
 ```js
-require("cypress-webhookdotsite");
+require('cypress-webhookdotsite');
 ```
 
 ### Example Usage
 
-```
-      cy.webhookGenerateToken().then((token) => {
-        cy.log(`Token: ${token}`);
-        cy.webhookGetEmailAddress(token).then((emailAddress) => {
-          console.log(emailAddress);
-          cy.log(`Email Address: ${emailAddress}`);
-        });
-        cy.webhookGetURI(token).then((webHookURI) => {
-          console.log(webHookURI);
-          cy.log(`WebHook URI: ${webHookURI}`);
-          cy.request(webHookURI); // hit our hook so there is an entry
-        });
-        cy.webhookGetAllRequests(token).then((responses) => {
-          console.log(responses);
-          responses.forEach((response) => {
-            cy.log(`Response: ${response.ip}`);
-          });
-        });
-      });
+```js
+cy.webhookGenerateToken({
+  apikey: 'ff07eb99-ed12-4f55-8fa1-65c7567d41b9',
+  password: 'Password1234',
+}).then((token) => {
+  cy.log(`Token: ${token}`);
+  cy.webhookGetEmailAddress({
+    token: token,
+    apikey: 'ff07eb99-ed12-4f55-8fa1-65c7567d41b9',
+    password: 'Password1234',
+  }).then((emailAddress) => {
+    console.log(emailAddress);
+    cy.log(`Email Address: ${emailAddress}`);
+  });
+  cy.webhookGetURI({
+    token: token,
+    apikey: 'ff07eb99-ed12-4f55-8fa1-65c7567d41b9',
+    password: 'Password1234',
+  }).then((webHookURI) => {
+    console.log(webHookURI);
+    cy.log(`WebHook URI: ${webHookURI}`);
+    cy.request(webHookURI);
+  });
+  cy.webhookGetAllRequests({
+    token: token,
+    apikey: 'ff07eb99-ed12-4f55-8fa1-65c7567d41b9',
+    password: 'Password1234',
+  }).then((responses) => {
+    console.log(responses);
+    responses.forEach((response) => {
+      cy.log(`Response: ${response.ip}`);
+    });
+  });
+});
 ```
