@@ -15,9 +15,6 @@ class RequestBuilder {
     };
   }
   request(method, path, parameters) {
-    cy.log(parameters);
-    console.log(this.webHookDotSiteApiKey);
-    cy.log(this.webHookDotSiteApiKey);
     const options = this.buildOptions(method, path);
     if (parameters.hasOwnProperty('password') && !parameters.hasOwnProperty('apikey')) {
       throw new Error('You must provide an apikey if a password is provided');
