@@ -5,6 +5,8 @@ class RequestBuilder {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     };
+    // The test shouldn't fail if WebHook.site returns a 502
+    this.failOnStatusCode = false;
   }
 
   buildOptions(method, path) {
