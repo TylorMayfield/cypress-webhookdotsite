@@ -6,16 +6,25 @@ let requester = new Request();
 // password
 // apikey
 
-const webhookGenerateToken = (parameters) => {
+const webhookGenerateToken = (parameters, retry = 0) => {
   requester.post('token', parameters).then((tokenRequest) => {
-    expect(tokenRequest.uuid).to.be.a('string');
-    expect(tokenRequest.uuid).to.have.length(36);
-    cy.log('View requests from your browser here:');
-    cy.log(`https://webhook.site/#!/${tokenRequest.uuid}`);
-    if (parameters.hasOwnProperty('password')) {
-      requester.put(`token/${tokenRequest.uuid}/password`, parameters);
+    cy.log(tokenRequest);
+    // if the response code isn't a 200 and it has tried less than 3 times
+    if (tokenRequest.status > 400 && retry < 5) {
+      cy.wait(1000);
+      webhookGenerateToken(parameters, retry + 1);
     }
-    cy.wrap(tokenRequest.uuid);
+    if (retry >= 3) {
+      throw new Error('Webhook.site is not responding');
+    }
+    expect(tokenRequest.body.uuid).to.be.a('string');
+    expect(tokenRequest.body.uuid).to.have.length(36);
+    cy.log('View requests from your browser here:');
+    cy.log(`https://webhook.site/#!/${tokenRequest.body.uuid}`);
+    if (parameters.hasOwnProperty('password')) {
+      requester.put(`token/${tokenRequest.body.uuid}/password`, parameters);
+    }
+    cy.wrap(tokenRequest.body.uuid);
   });
 };
 
@@ -27,14 +36,22 @@ const webhookGetEmailAddress = (parameters) => {
   cy.wrap(`${parameters.token}@email.webhook.site`);
 };
 
-const webhookGetAllRequests = (parameters) => {
+const webhookGetAllRequests = (parameters, retry = 0) => {
   if (!parameters.hasOwnProperty('token')) {
     throw new Error('You must provide a token');
   }
   expect(parameters.token).to.have.length(36);
+
   requester.get(`token/${parameters.token}/requests`, parameters).then((requests) => {
-    expect(requests.data).to.be.an('array');
-    cy.wrap(requests.data);
+    if (requests.status > 400 && retry < 5) {
+      cy.wait(1000);
+      webhookGetAllRequests(parameters, retry + 1);
+    }
+    if (retry >= 3) {
+      throw new Error('Webhook.site is not responding');
+    }
+    expect(requests.body.data).to.be.an('array');
+    cy.wrap(requests.body.data);
   });
 };
 

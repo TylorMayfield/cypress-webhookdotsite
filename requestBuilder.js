@@ -16,7 +16,7 @@ class RequestBuilder {
       headers: this.headers,
     };
   }
-  request(method, path, parameters, attempts = 0) {
+  request(method, path, parameters) {
     const options = this.buildOptions(method, path);
     if (parameters.hasOwnProperty('password') && !parameters.hasOwnProperty('apikey')) {
       throw new Error('You must provide an apikey if a password is provided');
@@ -29,16 +29,7 @@ class RequestBuilder {
     }
 
     //options.body = body || undefined;
-    //return cy.request(options).its('body');
-    cy.request(options).then((response) => {
-      if (response.status > 500 && attempts < 3) {
-        cy.log('WebHook.site returned a 502, retrying...');
-        cy.wait(1000);
-        this.request(method, path, parameters, attempts + 1);
-      } else {
-        return response.body;
-      }
-    });
+    return cy.request(options);
   }
 
   get(path, parameters) {
