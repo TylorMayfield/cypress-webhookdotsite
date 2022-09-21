@@ -31,7 +31,7 @@ class RequestBuilder {
     //options.body = body || undefined;
     //return cy.request(options).its('body');
     cy.request(options).then((response) => {
-      if (response.status === 502 && attempts < 3) {
+      if (response.status > 500 && attempts < 3) {
         cy.log('WebHook.site returned a 502, retrying...');
         cy.wait(1000);
         this.request(method, path, parameters, attempts + 1);
