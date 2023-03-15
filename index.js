@@ -1,74 +1,73 @@
 const Request = require('./requestBuilder');
 
-let requester = new Request();
-// Parameter Options
-// token
-// password
-// apikey
+const requester = new Request();
+
+const handleError = (func, parameters, retry) => {
+  if (retry < 3) {
+    cy.wait(1000);
+    func(parameters, retry + 1);
+  } else {
+    throw new Error('Webhook.site is not responding');
+  }
+};
+
+const validateToken = (token) => {
+  if (!token) {
+    throw new Error('You must provide a token');
+  }
+  expect(token).to.have.length(36);
+};
 
 const webhookGenerateToken = (parameters, retry = 0) => {
   requester.post('token', parameters).then((tokenRequest) => {
-    cy.log(tokenRequest);
-    // if the response code isn't a 200 and it has tried less than 3 times
-    if (tokenRequest.status > 400 && retry < 5) {
-      cy.wait(1000);
-      webhookGenerateToken(parameters, retry + 1);
+    if (tokenRequest.status > 400) {
+      handleError(webhookGenerateToken, parameters, retry);
+      return;
     }
-    if (retry >= 3) {
-      throw new Error('Webhook.site is not responding');
-    }
-    expect(tokenRequest.body.uuid).to.be.a('string');
-    expect(tokenRequest.body.uuid).to.have.length(36);
+
+    const { uuid } = tokenRequest.body;
+    expect(uuid).to.be.a('string').and.have.length(36);
+
     cy.log('View requests from your browser here:');
-    cy.log(`https://webhook.site/#!/${tokenRequest.body.uuid}`);
+    cy.log(`https://webhook.site/#!/${uuid}`);
+
     if (parameters.hasOwnProperty('password')) {
-      requester.put(`token/${tokenRequest.body.uuid}/password`, parameters);
+      requester.put(`token/${uuid}/password`, parameters);
     }
-    cy.wrap(tokenRequest.body.uuid);
+
+    cy.wrap(uuid);
   });
 };
 
-const webhookGetEmailAddress = (parameters) => {
-  if (!parameters.hasOwnProperty('token')) {
-    throw new Error('You must provide a token');
-  }
-  expect(parameters.token).to.have.length(36);
-  cy.wrap(`${parameters.token}@email.webhook.site`);
+const webhookGetEmailAddress = ({ token }) => {
+  validateToken(token);
+  cy.wrap(`${token}@email.webhook.site`);
 };
 
 const webhookGetAllRequests = (parameters, retry = 0) => {
-  if (!parameters.hasOwnProperty('token')) {
-    throw new Error('You must provide a token');
-  }
-  expect(parameters.token).to.have.length(36);
+  const { token } = parameters;
 
-  requester.get(`token/${parameters.token}/requests`, parameters).then((requests) => {
-    if (requests.status > 400 && retry < 5) {
-      cy.wait(1000);
-      webhookGetAllRequests(parameters, retry + 1);
+  validateToken(token);
+
+  requester.get(`token/${token}/requests`, parameters).then((requests) => {
+    if (requests.status > 400) {
+      handleError(webhookGetAllRequests, parameters, retry);
+      return;
     }
-    if (retry >= 3) {
-      throw new Error('Webhook.site is not responding');
-    }
+
     expect(requests.body.data).to.be.an('array');
     cy.wrap(requests.body.data);
   });
 };
 
-const webhookGetURI = (parameters) => {
-  if (!parameters.hasOwnProperty('token')) {
-    throw new Error('You must provide a token');
-  }
-  expect(parameters.token).to.have.length(36);
-  cy.wrap(`https://webhook.site/${parameters.token}`);
+const webhookGetURI = ({ token }) => {
+  validateToken(token);
+  cy.wrap(`https://webhook.site/${token}`);
 };
 
-const webhookDeleteSession = (parameters) => {
-  if (!parameters.hasOwnProperty('token')) {
-    throw new Error('You must provide a token');
-  }
-  expect(parameters.token).to.have.length(36);
-  requester.del(`token/${parameters.token}`);
+const webhookDeleteSession = ({ token }) => {
+  validateToken(token);
+  requester.del(`token/${token}`);
 };
 
 Cypress.Commands.add('webhookGenerateToken', webhookGenerateToken);
