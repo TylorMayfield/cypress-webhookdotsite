@@ -27,6 +27,6 @@
   "homepage": "https://github.com/TylorMayfield/cypress-webhookdotsite#readme",
   "devDependencies": {},
   "dependencies": {
-    "typescript": "^4.5.4"
+    "typescript": "^5.5.3"
   }
 }
