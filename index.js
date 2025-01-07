@@ -2,72 +2,96 @@ const Request = require('./requestBuilder');
 
 const requester = new Request();
 
-const handleError = (func, parameters, retry) => {
-  if (retry < 3) {
-    cy.wait(1000);
-    func(parameters, retry + 1);
-  } else {
-    throw new Error('Webhook.site is not responding');
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 3000;
+
+const handleError = async (func, parameters, retry = 0) => {
+  if (retry < MAX_RETRIES) {
+    cy.log(`Retrying request... Attempt ${retry + 1} of ${MAX_RETRIES}`);
+    await cy.wait(RETRY_DELAY);
+    return func(parameters, retry + 1);
   }
+  throw new Error('Webhook.site is not responding after multiple retries');
 };
 
 const validateToken = (token) => {
   if (!token) {
-    throw new Error('You must provide a token');
+    throw new Error('Token is required');
   }
-  expect(token).to.have.length(36);
+  if (typeof token !== 'string') {
+    throw new Error('Token must be a string');
+  }
+  if (token.length !== 36) {
+    throw new Error('Invalid token format: must be 36 characters long');
+  }
 };
 
-const webhookGenerateToken = (parameters, retry = 0) => {
-  requester.post('token', parameters).then((tokenRequest) => {
-    if (tokenRequest.status > 400) {
-      handleError(webhookGenerateToken, parameters, retry);
-      return;
+const webhookGenerateToken = async (parameters = {}, retry = 0) => {
+  try {
+    const tokenRequest = await requester.post('token', parameters);
+
+    if (tokenRequest.status >= 400) {
+      return handleError(webhookGenerateToken, parameters, retry);
     }
 
     const { uuid } = tokenRequest.body;
-    expect(uuid).to.be.a('string').and.have.length(36);
+    validateToken(uuid);
 
-    cy.log('View requests from your browser here:');
-    cy.log(`https://webhook.site/#!/${uuid}`);
+    cy.log('Webhook URL generated successfully!');
+    cy.log(`View requests at: https://webhook.site/#!/${uuid}`);
 
-    if (parameters.hasOwnProperty('password')) {
-      requester.put(`token/${uuid}/password`, parameters);
+    if (parameters.password) {
+      await requester.put(`token/${uuid}/password`, parameters);
+      cy.log('Password protection enabled');
     }
 
-    cy.wrap(uuid);
-  });
+    return cy.wrap(uuid);
+  } catch (error) {
+    return handleError(webhookGenerateToken, parameters, retry);
+  }
 };
 
 const webhookGetEmailAddress = ({ token }) => {
   validateToken(token);
-  cy.wrap(`${token}@email.webhook.site`);
+  return cy.wrap(`${token}@email.webhook.site`);
 };
 
-const webhookGetAllRequests = (parameters, retry = 0) => {
+const webhookGetAllRequests = async (parameters = {}, retry = 0) => {
   const { token } = parameters;
-
   validateToken(token);
 
-  requester.get(`token/${token}/requests`, parameters).then((requests) => {
-    if (requests.status > 400) {
-      handleError(webhookGetAllRequests, parameters, retry);
-      return;
+  try {
+    const requests = await requester.get(`token/${token}/requests`, parameters);
+
+    if (requests.status >= 400) {
+      return handleError(webhookGetAllRequests, parameters, retry);
     }
 
-    expect(requests.body.data).to.be.an('array');
-    cy.wrap(requests.body.data);
-  });
+    const { data } = requests.body;
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response format: expected an array of requests');
+    }
+
+    return cy.wrap(data);
+  } catch (error) {
+    return handleError(webhookGetAllRequests, parameters, retry);
+  }
 };
 
 const webhookGetURI = ({ token }) => {
   validateToken(token);
-  cy.wrap(`https://webhook.site/${token}`);
+  return cy.wrap(`https://webhook.site/${token}`);
 };
 
-const webhookDeleteSession = ({ token }) => {
+const webhookDeleteSession = async ({ token }) => {
   validateToken(token);
-  requester.del(`token/${token}`);
+  try {
+    await requester.del(`token/${token}`);
+    cy.log('Session deleted successfully');
+  } catch (error) {
+    cy.log(`Failed to delete session: ${error.message}`);
+    throw error;
+  }
 };
 
 Cypress.Commands.add('webhookGenerateToken', webhookGenerateToken);

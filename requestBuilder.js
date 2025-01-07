@@ -1,35 +1,62 @@
 class RequestBuilder {
-  constructor(options) {
-    this.baseUrl = 'https://webhook.site/';
+  constructor(options = {}) {
+    this.baseUrl = options.baseUrl || 'https://webhook.site/';
     this.headers = {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...options.headers,
     };
-    // The test shouldn't fail if WebHook.site returns a 502
-    this.failOnStatusCode = false;
+    this.failOnStatusCode = options.failOnStatusCode ?? false;
+    this.timeout = options.timeout || 30000;
   }
 
-  buildOptions(method, path) {
-    return {
+  buildOptions(method, path, parameters = {}) {
+    const options = {
       method,
       url: `${this.baseUrl}${path}`,
-      headers: this.headers,
+      headers: { ...this.headers },
+      timeout: this.timeout,
+      failOnStatusCode: this.failOnStatusCode,
     };
-  }
-  request(method, path, parameters) {
-    const options = this.buildOptions(method, path);
-    if (parameters.hasOwnProperty('password') && !parameters.hasOwnProperty('apikey')) {
-      throw new Error('You must provide an apikey if a password is provided');
-    }
-    if (parameters.hasOwnProperty('apikey')) {
-      options.headers['Api-Key'] = parameters.apikey;
-    }
-    if (parameters.hasOwnProperty('password')) {
-      options.url = `${options.url}?password=${parameters.password}`;
+
+    if (parameters.body) {
+      options.body = parameters.body;
     }
 
-    //options.body = body || undefined;
-    return cy.request(options);
+    return options;
+  }
+
+  validateParameters(parameters = {}) {
+    if (parameters.password && !parameters.apikey) {
+      throw new Error('You must provide an apikey when using a password');
+    }
+  }
+
+  buildUrl(baseUrl, path, parameters = {}) {
+    const url = new URL(`${baseUrl}${path}`);
+    if (parameters.password) {
+      url.searchParams.append('password', parameters.password);
+    }
+    return url.toString();
+  }
+
+  async request(method, path, parameters = {}) {
+    this.validateParameters(parameters);
+
+    const options = this.buildOptions(method, path, parameters);
+    
+    if (parameters.apikey) {
+      options.headers['Api-Key'] = parameters.apikey;
+    }
+
+    options.url = this.buildUrl(this.baseUrl, path, parameters);
+
+    try {
+      return await cy.request(options);
+    } catch (error) {
+      cy.log(`Request failed: ${error.message}`);
+      throw error;
+    }
   }
 
   get(path, parameters) {
